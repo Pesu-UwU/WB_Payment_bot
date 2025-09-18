@@ -1,0 +1,11 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+ADMIN_SPREADSHEET_KEY = os.getenv("ADMIN_SPREADSHEET_KEY")
+ADMIN_DATA_SHEET_NAME = os.getenv("ADMIN_DATA_SHEET_NAME", "data")
+SUBSCRIPTION_ENABLED = os.getenv("SUBSCRIPTION_ENABLED", "true").lower() == "true"
+SUBSCRIPTION_GRACE_DAYS = int(os.getenv("SUBSCRIPTION_GRACE_DAYS", "3"))
