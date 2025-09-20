@@ -123,7 +123,7 @@ async def finalize_setup(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Создание таблицы
     sheets = get_sheets_client()
-    title = f"ИП {surname} — WB Autoresponder"
+    title = f"ИП {surname} — ВБ Автоответчик"
 
     await update.message.reply_text("⏳ Таблица создаётся, подождите...")
 
