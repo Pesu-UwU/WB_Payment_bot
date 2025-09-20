@@ -1,12 +1,8 @@
-# src/services/google_sheets.py
-import logging
-
 import gspread
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from typing import Optional, Tuple, Dict, Any, List
-from gspread.exceptions import APIError
 
 
 HEADERS = [
@@ -24,15 +20,13 @@ SHEET_QUESTIONS = "Вопросы"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
-    # нужен для шаринга/доступа к созданным файлам
+    # Шаринг больше не используем, drive.file оставим на будущее при необходимости
     "https://www.googleapis.com/auth/drive.file",
 ]
 
 class GoogleSheetsClient:
     def __init__(self, token_path: str):
-        # Загружаем пользовательский OAuth-токен
         creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-        # Обновим при необходимости (на будущее)
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
 
@@ -49,10 +43,9 @@ class GoogleSheetsClient:
     def create_client_spreadsheet(
             self,
             title: str,
-            share_email: Optional[str] = None,
-            anyone_can_edit: bool = True,
+            anyone_can_read: bool = True,
     ) -> Tuple[gspread.Spreadsheet, str, Optional[str]]:
-        # 1) создаём файл через Sheets API (не Drive)
+        # 1) создаём файл через Sheets API
         sheets_service = build("sheets", "v4", credentials=self.creds)
         body = {"properties": {"title": title}}
         resp = sheets_service.spreadsheets().create(
@@ -66,29 +59,9 @@ class GoogleSheetsClient:
         # 2) открываем через gspread по ключу
         sh = self.gc.open_by_key(spreadsheet_id)
 
-        # 3) общий доступ по ссылке (редактор), если нужно
-        if anyone_can_edit:
-            try:
-                sh.share(None, perm_type="anyone", role="writer")
-            except APIError as e:
-                # не критично — логика бота не ломается
-                logging.getLogger(__name__).warning("Cannot set anyone-can-edit: %s", e)
-
-        # 4) персональный доступ по e-mail
-        if share_email:
-            try:
-                # сначала тихо (без письма)
-                sh.share(share_email, perm_type="user", role="writer", notify=False)
-            except APIError as e:
-                text = str(e)
-                # кейс: у адреса нет Google-аккаунта → нужно notify=True
-                if ("Notify people" in text) or ("no Google account" in text):
-                    sh.share(share_email, perm_type="user", role="writer", notify=True)
-                # кейс: адрес просто мусорный/неприменим к типу разрешения
-                elif ("invalid or not applicable" in text) or ("Invalid" in text):
-                    raise ValueError("invalid-email")
-                else:
-                    raise
+        # 3) Общий доступ по ссылке ТОЛЬКО НА ЧТЕНИЕ
+        if anyone_can_read:
+            sh.share(None, perm_type="anyone", role="reader")
 
         return sh, spreadsheet_id, spreadsheet_url
 

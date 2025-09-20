@@ -1,7 +1,6 @@
 .env
 *.env
 *.json
-credentials*.json
 service_account*.json
 __pycache__/
 *.pyc
