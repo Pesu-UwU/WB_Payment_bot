@@ -123,7 +123,9 @@ async def finalize_setup(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Создание таблицы
     sheets = get_sheets_client()
-    title = f"{surname} — WB Autoresponder"
+    title = f"ИП {surname} — WB Autoresponder"
+
+    await update.message.reply_text("⏳ Таблица создаётся, подождите...")
 
     # ВАЖНО: ожидается обновлённый метод в google_sheets.py
     # который даёт общий доступ по ссылке «на чтение»
@@ -140,7 +142,7 @@ async def finalize_setup(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "client": full_name,
         "type": "Autoresponder",
         "enabled": 1,
-        "name": surname,          # фамилия
+        "name": f"IP {surname}",
         "wb_token": wb_token,
         "key_table": key,
         #"chat_": chat.id,
